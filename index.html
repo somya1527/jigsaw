@@ -11,7 +11,7 @@ body {
     font-family: 'Segoe UI', sans-serif;
 }
 
-/* START */
+/* START SCREEN */
 #start {
     height: 100vh;
     display: flex;
@@ -56,12 +56,12 @@ button {
 /* LETTER */
 #letter {
     display: none;
-    padding: 60px;
+    padding: 80px 20px;
     max-width: 800px;
     margin: auto;
     line-height: 1.7;
     opacity: 0;
-    transition: opacity 2s;
+    transition: opacity 1.5s ease;
 }
 
 .show {
@@ -72,26 +72,32 @@ button {
 
 <body>
 
+<!-- START -->
 <div id="start">
     <h2>Take your time with this…</h2>
     <button onclick="startGame()">Start</button>
 </div>
 
+<!-- PUZZLE -->
 <div id="puzzleContainer">
     <h3>Put it back together</h3>
     <div id="puzzle"></div>
 </div>
 
+<!-- LETTER -->
 <div id="letter">
     <h1>Happy 7 Years ❤️</h1>
-    <p>PASTE YOUR FINAL LETTER HERE</p>
+
+    <p>
+    PASTE YOUR FULL FINAL LETTER HERE
+    </p>
 </div>
 
 <script>
 const puzzle = document.getElementById("puzzle");
 let tiles = [];
 
-// Create tiles
+// CREATE TILES
 for (let i = 0; i < 16; i++) {
     let tile = document.createElement("div");
     tile.classList.add("tile");
@@ -107,7 +113,7 @@ for (let i = 0; i < 16; i++) {
     tiles.push(tile);
 }
 
-// Shuffle
+// SHUFFLE
 function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
         let j = Math.floor(Math.random() * (i + 1));
@@ -115,18 +121,18 @@ function shuffle(array) {
     }
 }
 
-// Start game
+// START GAME
 function startGame() {
     document.getElementById("start").style.display = "none";
     document.getElementById("puzzleContainer").style.display = "flex";
 
     shuffle(tiles);
-
     tiles.forEach(tile => puzzle.appendChild(tile));
 
     enableDrag();
 }
 
+// DRAG LOGIC
 function enableDrag() {
     let dragged = null;
 
@@ -161,7 +167,7 @@ function enableDrag() {
     });
 }
 
-// WIN CHECK (clean and reliable)
+// WIN CHECK (PERFECT)
 function checkWin() {
     let correct = true;
 
@@ -180,9 +186,12 @@ function checkWin() {
             let letter = document.getElementById("letter");
             letter.style.display = "block";
 
-            setTimeout(() => {
-                letter.classList.add("show");
-            }, 100);
+            // FORCE RENDER
+            void letter.offsetWidth;
+
+            letter.classList.add("show");
+
+            window.scrollTo(0, 0);
 
         }, 500);
     }
