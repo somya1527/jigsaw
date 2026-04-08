@@ -1,24 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>For You ❤️</title>
+
+<style>
+body {
+    margin: 0;
+    background: #ffffff;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* START */
+#start {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+button {
+    padding: 12px 24px;
+    border: none;
+    background: #ffccd5;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+/* PUZZLE */
+#puzzleContainer {
+    display: none;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+#puzzle {
+    display: grid;
+    grid-template-columns: repeat(4, 120px);
+    grid-template-rows: repeat(4, 120px);
+    gap: 4px;
+}
+
+.tile {
+    width: 120px;
+    height: 120px;
+    background-image: url('letter.jpg');
+    background-size: 480px 480px;
+    cursor: grab;
+    border-radius: 6px;
+}
+
+/* LETTER */
+#letter {
+    display: none;
+    padding: 60px;
+    max-width: 800px;
+    margin: auto;
+    line-height: 1.7;
+    opacity: 0;
+    transition: opacity 2s;
+}
+
+.show {
+    opacity: 1;
+}
+</style>
+</head>
+
+<body>
+
+<div id="start">
+    <h2>Take your time with this…</h2>
+    <button onclick="startGame()">Start</button>
+</div>
+
+<div id="puzzleContainer">
+    <h3>Put it back together</h3>
+    <div id="puzzle"></div>
+</div>
+
+<div id="letter">
+    <h1>Happy 7 Years ❤️</h1>
+    <p>PASTE YOUR FINAL LETTER HERE</p>
+</div>
+
 <script>
 const puzzle = document.getElementById("puzzle");
 let tiles = [];
-let positions = [];
 
 // Create tiles
 for (let i = 0; i < 16; i++) {
-    let div = document.createElement("div");
-    div.classList.add("tile");
+    let tile = document.createElement("div");
+    tile.classList.add("tile");
 
     let x = (i % 4) * 120;
     let y = Math.floor(i / 4) * 120;
 
-    div.style.backgroundPosition = `-${x}px -${y}px`;
-    div.dataset.correct = i;
+    tile.style.backgroundPosition = `-${x}px -${y}px`;
+    tile.dataset.correct = i;
 
-    tiles.push(div);
-    positions.push(i); // track positions
+    tile.draggable = true;
+
+    tiles.push(tile);
 }
 
-// Shuffle positions
+// Shuffle
 function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
         let j = Math.floor(Math.random() * (i + 1));
@@ -31,54 +120,54 @@ function startGame() {
     document.getElementById("start").style.display = "none";
     document.getElementById("puzzleContainer").style.display = "flex";
 
-    shuffle(positions);
+    shuffle(tiles);
 
-    puzzle.innerHTML = "";
+    tiles.forEach(tile => puzzle.appendChild(tile));
 
-    positions.forEach(pos => {
-        let tile = tiles[pos];
-        puzzle.appendChild(tile);
-    });
+    enableDrag();
+}
+
+function enableDrag() {
+    let dragged = null;
 
     tiles.forEach(tile => {
-        tile.onclick = () => selectTile(tile);
+
+        tile.addEventListener("dragstart", () => {
+            dragged = tile;
+            tile.style.opacity = "0.5";
+        });
+
+        tile.addEventListener("dragend", () => {
+            tile.style.opacity = "1";
+        });
+
+        tile.addEventListener("dragover", e => {
+            e.preventDefault();
+        });
+
+        tile.addEventListener("drop", () => {
+            if (dragged === tile) return;
+
+            let parent = tile.parentNode;
+
+            let draggedIndex = Array.from(parent.children).indexOf(dragged);
+            let targetIndex = Array.from(parent.children).indexOf(tile);
+
+            parent.insertBefore(dragged, tile);
+            parent.insertBefore(tile, parent.children[draggedIndex]);
+
+            checkWin();
+        });
     });
 }
 
-let selected = null;
-
-function selectTile(tile) {
-    if (!selected) {
-        selected = tile;
-        tile.style.border = "2px solid pink";
-    } else {
-        swapTiles(selected, tile);
-        selected.style.border = "none";
-        selected = null;
-        checkWin();
-    }
-}
-
-// Swap actual DOM positions
-function swapTiles(a, b) {
-    let parent = a.parentNode;
-    let aIndex = Array.from(parent.children).indexOf(a);
-    let bIndex = Array.from(parent.children).indexOf(b);
-
-    if (aIndex < bIndex) {
-        parent.insertBefore(b, a);
-        parent.insertBefore(a, parent.children[bIndex]);
-    } else {
-        parent.insertBefore(a, b);
-        parent.insertBefore(b, parent.children[aIndex]);
-    }
-}
-
-// Check win properly
+// WIN CHECK (clean and reliable)
 function checkWin() {
     let correct = true;
 
-    Array.from(puzzle.children).forEach((tile, index) => {
+    let current = Array.from(puzzle.children);
+
+    current.forEach((tile, index) => {
         if (parseInt(tile.dataset.correct) !== index) {
             correct = false;
         }
@@ -87,6 +176,7 @@ function checkWin() {
     if (correct) {
         setTimeout(() => {
             document.getElementById("puzzleContainer").style.display = "none";
+
             let letter = document.getElementById("letter");
             letter.style.display = "block";
 
@@ -94,7 +184,10 @@ function checkWin() {
                 letter.classList.add("show");
             }, 100);
 
-        }, 600);
+        }, 500);
     }
 }
 </script>
+
+</body>
+</html>
